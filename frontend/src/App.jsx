@@ -9,7 +9,7 @@ export default function App() {
 
 
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:5000");
+    const ws = new WebSocket("wss://https://monitoring-dashboard-eph9.onrender.com");
 
     ws.onmessage = (event) => {
       setSystems(JSON.parse(event.data));
