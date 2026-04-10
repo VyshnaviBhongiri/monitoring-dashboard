@@ -6,16 +6,33 @@ import Summary from "./components/Summary";
 
 export default function App() {
   const [systems, setSystems] = useState([]);
-
+  const [connected, setConnected] = useState(false); // ✅ added
 
   useEffect(() => {
-    const ws = new WebSocket("wss://monitoring-dashboard-eph9.onrender.com");
+    let ws;
 
-    ws.onmessage = (event) => {
-      setSystems(JSON.parse(event.data));
+    const connect = () => {
+      ws = new WebSocket("wss://monitoring-dashboard-eph9.onrender.com");
+
+      ws.onopen = () => {
+        console.log("Connected");
+        setConnected(true); // ✅ when connected
+      };
+
+      ws.onmessage = (event) => {
+        setSystems(JSON.parse(event.data));
+      };
+
+      ws.onclose = () => {
+        console.log("Reconnecting...");
+        setConnected(false); // ✅ when disconnected
+        setTimeout(connect, 3000); // ✅ retry after 3 sec
+      };
     };
 
-    return () => ws.close();
+    connect();
+
+    return () => ws && ws.close();
   }, []);
 
   return (
@@ -23,6 +40,13 @@ export default function App() {
       <h1 className="text-4xl font-bold mb-6">
         🚀 Monitoring Dashboard
       </h1>
+
+      {/* ✅ NEW: Connection status message */}
+      {!connected && (
+        <p className="text-yellow-400 mb-4">
+          Connecting to server... please wait ⏳
+        </p>
+      )}
 
       <button
         onClick={() => exportReport(systems)}
